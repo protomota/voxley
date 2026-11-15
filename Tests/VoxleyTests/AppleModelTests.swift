@@ -9,7 +9,8 @@ private let fixture = ProcessInfo.processInfo.environment["VOXLEY_TEST_AUDIO"]
 @Test(.enabled(if: fixture != nil, "Run Scripts/test-app.sh --with-models to exercise local Apple models"))
 func recorderMeterReflectsMicrophoneAmplitude() async throws {
     let format = try #require(AVAudioFormat(standardFormatWithSampleRate: 16_000, channels: 1))
-    let module = try await AppleModels.transcriber(locale: "en-US", live: true)
+    let locale = try await AppleModels.prepareSpeech(for: "en-US")
+    let module = SpeechTranscriber(locale: locale, preset: .progressiveTranscription)
     let output = try #require(await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [module]))
     let (_, audio) = AsyncThrowingStream<AnalyzerInput, Error>.makeStream()
     let (readings, meter) = AsyncStream<WaveformFrame>.makeStream()
@@ -51,17 +52,31 @@ func recorderMeterReflectsMicrophoneAmplitude() async throws {
 @Test(.enabled(if: fixture != nil, "Run Scripts/test-app.sh --with-models to exercise local Apple models"))
 func appleSpeechRecognizesAnActualRecording() async throws {
     let url = URL(filePath: try #require(fixture))
-    let transcript = try await AppleModels.transcribeFile(url, locale: "en-US", words: [])
-    #expect(transcript.localizedCaseInsensitiveContains("purple"))
-    #expect(transcript.localizedCaseInsensitiveContains("elephant"))
-    print("Apple Speech (file): \(transcript)")
+    let file = try AVAudioFile(forReading: url)
+    let locale = try await AppleModels.prepareSpeech(for: "en-US")
+    let module = SpeechTranscriber(locale: locale, preset: .transcription)
+    let analyzer = SpeechAnalyzer(modules: [module])
+    let results = Task { try await AppleModels.collect(module) }
+    defer { results.cancel() }
+    do {
+        let end = try #require(try await analyzer.analyzeSequence(from: file))
+        try await analyzer.finalizeAndFinish(through: end)
+        let transcript = try await results.value
+        #expect(transcript.localizedCaseInsensitiveContains("purple"))
+        #expect(transcript.localizedCaseInsensitiveContains("elephant"))
+        print("Apple Speech (file): \(transcript)")
+    } catch {
+        await analyzer.cancelAndFinishNow()
+        throw error
+    }
 }
 
 @Test(.enabled(if: fixture != nil, "Run Scripts/test-app.sh --with-models to exercise local Apple models"))
 func appleSpeechRecognizesProgressiveAudioThroughCaptureConverter() async throws {
     let url = URL(filePath: try #require(fixture))
     let file = try AVAudioFile(forReading: url)
-    let module = try await AppleModels.transcriber(locale: "en-US", live: true)
+    let locale = try await AppleModels.prepareSpeech(for: "en-US")
+    let module = SpeechTranscriber(locale: locale, preset: .progressiveTranscription)
     let format = try #require(await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [module]))
     let analyzer = SpeechAnalyzer(modules: [module])
     var preferences = Preferences()

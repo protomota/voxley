@@ -9,6 +9,8 @@ import UniformTypeIdentifiers
 enum Phase: Equatable {
     case idle, preparing, recording, transcribing, refining
 
+    var isCapturing: Bool { self == .preparing || self == .recording }
+
     var title: String {
         switch self {
         case .idle: "Ready to dictate"
@@ -24,7 +26,6 @@ enum Phase: Equatable {
 @Observable
 final class DictationController {
     private(set) var phase = Phase.idle
-    var showsRecorder: Bool { phase == .preparing || phase == .recording }
     private(set) var liveText = ""
     private(set) var waveform = WaveformFrame.silence
     private(set) var recordingWindow: NSRect?
@@ -204,7 +205,7 @@ final class DictationController {
         deliveryLog.debug("Shortcut \(pressed ? "pressed" : "released", privacy: .public)")
         if let shortcutProbeWindow, NSApp.keyWindow === shortcutProbeWindow, phase == .idle { return }
         let action = shortcutGesture.update(pressed: pressed, time: time,
-                                            canStart: phase == .idle, isRecording: showsRecorder)
+                                            canStart: phase == .idle, isRecording: phase.isCapturing)
         switch action {
         case .start: start()
         case .stop:
@@ -298,7 +299,7 @@ final class DictationController {
     }
 
     func cancel() {
-        guard phase == .preparing || phase == .recording else { return }
+        guard phase.isCapturing else { return }
         let capture = live
         task?.cancel()
         reset()

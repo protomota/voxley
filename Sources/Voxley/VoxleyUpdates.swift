@@ -2,7 +2,6 @@
 import Foundation
 import Observation
 import Sparkle
-import SwiftUI
 
 @MainActor
 @Observable

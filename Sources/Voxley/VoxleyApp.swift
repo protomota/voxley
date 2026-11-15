@@ -91,7 +91,7 @@ private struct MenuCommands: View {
         Divider()
         Text("Tap or hold \(controller.preferences.shortcutKey.label) to dictate")
 
-        if controller.phase == .recording || controller.phase == .preparing {
+        if controller.phase.isCapturing {
             Button("Cancel Dictation") { controller.cancel() }
         }
         if let transcript = controller.mostRecentTranscript {

@@ -1,13 +1,8 @@
-import AVFoundation
+import Foundation
 import FoundationModels
 import Speech
 
 enum AppleModels {
-    static func transcriber(locale: String, live: Bool) async throws -> SpeechTranscriber {
-        let supported = try await prepareSpeech(for: locale)
-        return SpeechTranscriber(locale: supported, preset: live ? .progressiveTranscription : .transcription)
-    }
-
     static func prepareSpeech(for locale: String) async throws -> Locale {
         guard SpeechTranscriber.isAvailable else { throw VoxleyError.speechUnavailable }
         guard let supported = await SpeechTranscriber.supportedLocale(equivalentTo: Locale(identifier: locale)) else {
@@ -26,23 +21,6 @@ enum AppleModels {
         let context = AnalysisContext()
         context.contextualStrings[.general] = words
         try await analyzer.setContext(context)
-    }
-
-    static func transcribeFile(_ url: URL, locale: String, words: [String]) async throws -> String {
-        let module = try await transcriber(locale: locale, live: false)
-        let analyzer = SpeechAnalyzer(modules: [module])
-        try await configure(analyzer, words: words)
-        let file = try AVAudioFile(forReading: url)
-        let results = Task { try await collect(module) }
-        defer { results.cancel() }
-        do {
-            guard let end = try await analyzer.analyzeSequence(from: file) else { throw VoxleyError.emptyAudio }
-            try await analyzer.finalizeAndFinish(through: end)
-            return try await results.value
-        } catch {
-            await analyzer.cancelAndFinishNow()
-            throw error
-        }
     }
 
     static func collect(
