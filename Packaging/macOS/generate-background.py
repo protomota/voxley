@@ -10,6 +10,33 @@ ROOT = Path(__file__).resolve().parent
 FONT = Path("/System/Library/Fonts/SFNS.ttf")
 
 
+def draw_arrow(canvas: Image.Image, scale: int) -> None:
+    origin = (310, 204)
+    size = (100, 52)
+    samples = 4 * scale
+    mask = Image.new("L", tuple(edge * samples for edge in size))
+    stroke = ImageDraw.Draw(mask)
+    left, tip = (324, 230), (396, 230)
+    upper, lower = (379, 213), (379, 247)
+    radius = 2
+
+    def point(coordinates: tuple[int, int]) -> tuple[int, int]:
+        x, y = coordinates
+        return ((x - origin[0]) * samples, (y - origin[1]) * samples)
+
+    for path in ((left, tip), (upper, tip, lower)):
+        stroke.line([point(coordinates) for coordinates in path],
+                    fill=255, width=2 * radius * samples, joint="curve")
+    for coordinates in (left, upper, tip, lower):
+        x, y = point(coordinates)
+        r = radius * samples
+        stroke.ellipse((x - r, y - r, x + r, y + r), fill=255)
+
+    mask = mask.resize(tuple(edge * scale for edge in size), Image.Resampling.LANCZOS)
+    arrow = Image.new("RGB", mask.size, "#FFC977")
+    canvas.paste(arrow, tuple(edge * scale for edge in origin), mask)
+
+
 def render(scale: int, target: Path) -> None:
     width, height = 720 * scale, 460 * scale
     canvas = Image.new("RGB", (width, height))
@@ -69,9 +96,7 @@ def render(scale: int, target: Path) -> None:
     for x, y in dots:
         draw.ellipse(box((x - 1.15, y - 1.15, x + 1.15, y + 1.15)), fill="#FFD792")
 
-    # Rounded arrow pointing from the app to the actual Applications shortcut.
-    draw.line(box((321, 230, 396, 230)), fill="#FFC977", width=3 * scale)
-    draw.line(box((381, 215, 397, 230, 381, 245)), fill="#FFC977", width=3 * scale)
+    draw_arrow(canvas, scale)
     draw.line(box((88, 355, 632, 355)), fill="#4B4D53", width=scale)
     text("Eject this disk image when copying is complete.", 378, 15, "#F6F3EB")
     text("Open Voxley from your Applications folder.", 410, 14, "#BBC2CE")
