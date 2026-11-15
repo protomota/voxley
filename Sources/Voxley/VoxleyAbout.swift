@@ -84,18 +84,15 @@ struct VoxleyAbout: View {
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Follow Voxley").font(.headline)
-                    HStack(spacing: 12) {
-                        Link(destination: Self.website) {
-                            Label("Website", systemImage: "globe")
-                        }
-                        Link(destination: URL(string: "https://newsletter.protomota.com/")!) {
-                            Label("Protomota newsletter", systemImage: "envelope")
-                        }
-                        Link(destination: URL(string: "https://x.com/ProtomotaLab")!) {
-                            Label("Follow on X", systemImage: "arrow.up.right")
+                    GlassEffectContainer(spacing: 4) {
+                        HStack(spacing: 10) {
+                            followLink("Website", icon: "globe", destination: Self.website)
+                            followLink("Protomota newsletter", icon: "envelope",
+                                       destination: URL(string: "https://newsletter.protomota.com/")!)
+                            followLink("Follow on X", icon: "arrow.up.right",
+                                       destination: URL(string: "https://x.com/ProtomotaLab")!)
                         }
                     }
-                    .buttonStyle(.bordered)
                 }
                 Text("© 2026 Protomota, LLC").font(.caption).foregroundStyle(.secondary)
             }
@@ -103,6 +100,23 @@ struct VoxleyAbout: View {
             .frame(maxWidth: 540, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
+    }
+
+    private func followLink(_ title: LocalizedStringKey, icon: String, destination: URL) -> some View {
+        Link(destination: destination) {
+            Label {
+                Text(title)
+            } icon: {
+                Image(systemName: icon)
+                    .foregroundStyle(Color.voxleyAccent)
+            }
+            .font(.callout.weight(.medium))
+            .padding(.horizontal, 12)
+            .frame(minHeight: 34)
+            .glassEffect(.regular.interactive(), in: Capsule())
+            .contentShape(Capsule())
+        }
+        .buttonStyle(.plain)
     }
 
     private func supportRow(_ title: LocalizedStringKey, detail: LocalizedStringKey, icon: String) -> some View {
