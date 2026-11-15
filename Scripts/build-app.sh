@@ -41,6 +41,8 @@ install -m 755 "$bin/Voxley" "$app/Contents/MacOS/Voxley"
 install -m 644 "$root/Scripts/Info.plist" "$app/Contents/Info.plist"
 iconset="$output/Build/tmp/AppIcon.iconset"
 mkdir -p "$iconset" "$app/Contents/Resources"
+xcrun actool --compile "$app/Contents/Resources" --platform macosx \
+    --minimum-deployment-target 26.0 "$root/Resources/Assets.xcassets"
 for size in 16 32 128 256 512; do
     /usr/bin/sips -z "$size" "$size" "$root/Resources/AppIcon.png" --out "$iconset/icon_${size}x${size}.png" >/dev/null
     twice=$((size * 2))

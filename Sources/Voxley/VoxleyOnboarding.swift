@@ -139,6 +139,7 @@ private struct VoxleyOnboarding: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         }
         .frame(minWidth: 680, minHeight: 450)
+        .tint(.voxleyAccent)
         .onChange(of: step, initial: true) {
             startingPresses = controller.shortcutPresses
             select(step)
@@ -158,7 +159,7 @@ private struct VoxleyOnboarding: View {
                         .font(.callout.weight(step == item ? .semibold : .regular))
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(8)
-                        .background(step == item ? Color.accentColor.opacity(0.14) : .clear,
+                        .background(step == item ? Color.voxleyAccent.opacity(0.14) : .clear,
                                     in: RoundedRectangle(cornerRadius: 7))
                         .contentShape(Rectangle())
                 }

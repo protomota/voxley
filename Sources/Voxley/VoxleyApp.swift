@@ -1,8 +1,10 @@
 import AppKit
 import SwiftUI
 
-private let supportURL = URL(string: "https://protomota.com/support?app=voxley")!
-private let feedbackURL = URL(string: "https://protomota.com/apps?app=voxley#feedback")!
+enum VoxleySupport {
+    static let ticketURL = URL(string: "https://protomota.com/support?app=voxley")!
+    static let feedbackURL = URL(string: "https://protomota.com/apps?app=voxley#feedback")!
+}
 
 @main
 @MainActor
@@ -27,8 +29,8 @@ struct VoxleyApp: App {
                 Button("Voxley Onboarding…", action: delegate.openOnboarding)
             }
             CommandGroup(after: .help) {
-                Button("Get App Help") { NSWorkspace.shared.open(supportURL) }
-                Button("Send Feedback…") { NSWorkspace.shared.open(feedbackURL) }
+                Button("Get App Help") { NSWorkspace.shared.open(VoxleySupport.ticketURL) }
+                Button("Send Feedback…") { NSWorkspace.shared.open(VoxleySupport.feedbackURL) }
             }
         }
     }
@@ -116,8 +118,8 @@ private struct MenuCommands: View {
             .disabled(!VoxleyUpdates.shared.canCheck || controller.phase != .idle)
         #endif
         Button("About Voxley", action: openAbout)
-        Button("Get App Help") { NSWorkspace.shared.open(supportURL) }
-        Button("Send Feedback…") { NSWorkspace.shared.open(feedbackURL) }
+        Button("Get App Help") { NSWorkspace.shared.open(VoxleySupport.ticketURL) }
+        Button("Send Feedback…") { NSWorkspace.shared.open(VoxleySupport.feedbackURL) }
         Button("Quit Voxley") { NSApp.terminate(nil) }
             .keyboardShortcut("q")
     }

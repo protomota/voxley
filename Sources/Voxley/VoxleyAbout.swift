@@ -8,7 +8,7 @@ final class AboutWindow {
     func show() {
         if window == nil {
             let window = NSPanel(
-                contentRect: NSRect(x: 0, y: 0, width: 510, height: 400),
+                contentRect: NSRect(x: 0, y: 0, width: 510, height: 640),
                 styleMask: [.titled, .closable], backing: .buffered, defer: false
             )
             window.title = "About Voxley"
@@ -26,6 +26,7 @@ final class AboutWindow {
 struct VoxleyAbout: View {
     private static let website = URL(string: "https://voxley.si/")!
     private static let tipPage = URL(string: "https://buymeacoffee.com/protomotalab")!
+    private static let moreApps = URL(string: "https://protomota.com/apps")!
 
     private var version: String {
         Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? ""
@@ -52,29 +53,34 @@ struct VoxleyAbout: View {
                 Text("Private dictation for Mac. Speak wherever you type, with transcription on your device.")
                     .fixedSize(horizontal: false, vertical: true)
 
-                GroupBox {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Every feature is free. If Voxley helps you and you’re able to contribute, an optional tip helps support its development.")
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-                        HStack(spacing: 10) {
-                            Link(destination: Self.tipPage) {
-                                Label("Buy me a coffee", systemImage: "cup.and.saucer")
-                            }
-                            .buttonStyle(.borderedProminent)
-                            ShareLink(item: Self.website, subject: Text("Voxley for Mac"),
-                                      message: Text("Free, private dictation for Mac.")) {
-                                Label("Share Voxley", systemImage: "square.and.arrow.up")
-                            }
-                            .buttonStyle(.bordered)
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.top, 4)
-                } label: {
-                    Label("Free, supported by tips", systemImage: "heart")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Free software. Supported by people.")
                         .font(.headline)
+                    Text("Every feature is free. Tips are entirely optional.")
+                        .foregroundStyle(.secondary)
+                    Link(destination: Self.tipPage) {
+                        supportRow("Buy me a coffee", detail: "Leave an optional tip",
+                                   icon: "cup.and.saucer")
+                    }
+                    Link(destination: VoxleySupport.feedbackURL) {
+                        supportRow("Send Feedback", detail: "Suggest an improvement or report a bug",
+                                   icon: "bubble.left.and.bubble.right")
+                    }
+                    ShareLink(item: Self.website, subject: Text("Voxley for Mac"),
+                              message: Text("Free, private dictation for Mac.")) {
+                        supportRow("Share Voxley", detail: "Send someone a link to the app",
+                                   icon: "square.and.arrow.up")
+                    }
+                    Link(destination: VoxleySupport.ticketURL) {
+                        supportRow("Open a Support Ticket", detail: "Get help with one issue in Voxley for Mac",
+                                   icon: "headphones")
+                    }
+                    Link(destination: Self.moreApps) {
+                        supportRow("More Free Apps by Protomota", detail: "Explore more apps from our studio",
+                                   icon: "arrow.up.right.square")
+                    }
                 }
+                .buttonStyle(.plain)
 
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Follow Voxley").font(.headline)
@@ -97,5 +103,32 @@ struct VoxleyAbout: View {
             .frame(maxWidth: 540, alignment: .leading)
             .frame(maxWidth: .infinity)
         }
+    }
+
+    private func supportRow(_ title: LocalizedStringKey, detail: LocalizedStringKey, icon: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .foregroundStyle(Color.voxleyAccent)
+                .frame(width: 22)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.callout.weight(.semibold))
+                Text(detail).font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer(minLength: 8)
+            Image(systemName: "arrow.up.right")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(Color.voxleyAccent)
+                .accessibilityHidden(true)
+        }
+        .padding(10)
+        .background(.quaternary.opacity(0.5), in: .rect(cornerRadius: 10))
+        .overlay {
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(.quaternary)
+                .allowsHitTesting(false)
+        }
+        .contentShape(.rect(cornerRadius: 10))
+        .accessibilityElement(children: .combine)
     }
 }

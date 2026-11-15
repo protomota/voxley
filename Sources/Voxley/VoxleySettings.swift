@@ -28,6 +28,7 @@ struct VoxleySettings: View {
             }
         }
         .frame(width: 590, height: 450)
+        .tint(.voxleyAccent)
         .onAppear {
             launchAtLogin.refresh()
             controller.refreshPermissions()
