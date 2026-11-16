@@ -117,9 +117,11 @@ To publish an approved release, serve the exact stapled DMG under `https://voxle
 
 </details>
 
-## Source availability
+## Free to use. Source available.
 
-Copyright © 2026 Protomota, LLC. The source is available to inspect. Third-party components retain their own licenses.
+Voxley is free for personal and business use, including paid work. Your dictated text is yours.
+
+Voxley’s original code, build scripts, documentation and artwork are © 2026 Protomota, LLC and use the [Voxley Source-Available License 1.0](LICENSE). You may inspect, build and modify the source, and redistribute it noncommercially under the license. Commercial distribution requires written permission from Protomota, LLC. This is a source-available license, not an open-source license. Third-party components retain their own licenses.
 
 ---
 
