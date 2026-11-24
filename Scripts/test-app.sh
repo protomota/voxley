@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 root="$(cd "$(dirname "$0")/.." && pwd)"
-output="/Volumes/Expand/Codex Media/Voxley"
+output="/Volumes/Expand/Projects/Voxley/app-work"
 [[ -d /Volumes/Expand ]] || { echo 'Mount Expand before testing Voxley.' >&2; exit 1; }
 mkdir -p "$output/Build/tmp" "$output/Build/modules" "$output/Build/cache"
 export TMPDIR="$output/Build/tmp/"

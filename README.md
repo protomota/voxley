@@ -102,8 +102,8 @@ To sign the first build with a Developer ID, set `VOXLEY_SIGNING_IDENTITY` to th
 <br>
 
 ```sh
-build_tools='/Volumes/Expand/Codex Media/Voxley/Build/dmg-tools'
-release_dir='/Volumes/Expand/Codex Media/Voxley/Release/<version>'
+build_tools='/Volumes/Expand/Projects/Voxley/app-work/Build/dmg-tools'
+release_dir='/Volumes/Expand/Projects/Voxley/app-work/Release/<version>'
 python3.12 -m venv "$build_tools"
 "$build_tools/bin/python" -m pip install -r Packaging/macOS/requirements.txt
 VOXLEY_RELEASE=1 VOXLEY_SIGNING_IDENTITY='Developer ID Application: Protomota, LLC (22HV69L32T)' \

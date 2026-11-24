@@ -2,7 +2,7 @@
 set -euo pipefail
 
 root="$(cd "$(dirname "$0")/.." && pwd)"
-output="${1:-/Volumes/Expand/Codex Media/Voxley}"
+output="${1:-/Volumes/Expand/Projects/Voxley/app-work}"
 [[ -d /Volumes/Expand ]] || { echo 'Mount Expand before building Voxley.' >&2; exit 1; }
 [[ "$output" == /Volumes/Expand/* ]] || { echo 'Choose an output directory on Expand.' >&2; exit 1; }
 mkdir -p "$output/Build/tmp" "$output/Build/modules" "$output/Build/cache"
@@ -30,7 +30,7 @@ sparkle=''
 if [[ "${VOXLEY_RELEASE:-0}" == 1 ]]; then
     [[ "$identity" == "Developer ID Application: "* ]] || { echo 'A Developer ID Application identity is required for distribution.' >&2; exit 1; }
     signing_flags=(--timestamp --options runtime)
-    sparkle="$(bash "$root/Scripts/prepare-sparkle.sh" '/Volumes/Expand/Codex Media/Voxley/Build')"
+    sparkle="$(bash "$root/Scripts/prepare-sparkle.sh" '/Volumes/Expand/Projects/Voxley/app-work/Build')"
     args+=(-Xswiftc -DVOXLEY_SPARKLE -Xswiftc -F -Xswiftc "$sparkle"
            -Xlinker -F -Xlinker "$sparkle" -Xlinker -rpath -Xlinker @executable_path/../Frameworks)
 fi

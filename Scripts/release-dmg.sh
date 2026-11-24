@@ -8,7 +8,7 @@ shift
     echo 'Supply a signed release directory on Expand and notarytool authentication options.' >&2
     exit 1
 }
-base='/Volumes/Expand/Codex Media/Voxley/Build'
+base='/Volumes/Expand/Projects/Voxley/app-work/Build'
 mkdir -p "$base/tmp"
 export TMPDIR="$base/tmp/"
 python="${VOXLEY_DMG_PYTHON:-$base/dmg-tools/bin/python}"
