@@ -2,8 +2,8 @@ import AppKit
 import SwiftUI
 
 enum VoxleySupport {
-    static let ticketURL = URL(string: "https://protomota.com/support?app=voxley")!
-    static let feedbackURL = URL(string: "https://protomota.com/apps?app=voxley#feedback")!
+    static let ticketURL = VoxleyEngagement.ticketURL
+    static let feedbackURL = VoxleyEngagement.feedbackURL
 }
 
 @main
@@ -14,12 +14,13 @@ struct VoxleyApp: App {
     var body: some Scene {
         MenuBarExtra("Voxley", systemImage: menuIcon) {
             MenuCommands(controller: delegate.controller, openOnboarding: delegate.openOnboarding,
-                         openAbout: delegate.openAbout)
+                         openAbout: delegate.openAbout, openSupport: delegate.openSupport)
         }
 
         Settings {
             VoxleySettings(controller: delegate.controller, launchAtLogin: delegate.launchAtLogin,
-                           openOnboarding: delegate.openOnboarding, openAbout: delegate.openAbout)
+                           openOnboarding: delegate.openOnboarding, openAbout: delegate.openAbout,
+                           openSupport: delegate.openSupport)
         }
         .commands {
             CommandGroup(replacing: .appInfo) {
@@ -48,11 +49,22 @@ final class VoxleyDelegate: NSObject, NSApplicationDelegate {
     private let recorder = RecorderPanel()
     private let setup = SetupWindow()
     private let about = AboutWindow()
+    private let support = SupportWindow()
+    private lazy var supportPrompter = VoxleySupportPrompter(
+        isIdle: { [unowned self] in controller.phase == .idle },
+        canPresent: { [unowned self] in canPresentSupport },
+        present: { [unowned self] in support.show(automatic: true) },
+        withdraw: { [unowned self] in support.withdrawAutomatic() }
+    )
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         launchAtLogin.configureDefault()
         controller.activate()
         recorder.connect(controller)
+        controller.onDictationStarted = { [unowned self] in supportPrompter.dictationStarted() }
+        controller.onDictationFinished = { [unowned self] in supportPrompter.dictationFinished() }
+        if CommandLine.arguments.contains("--support-card") { openSupport() }
+        if CommandLine.arguments.contains("--support-card-automatic") { support.show(automatic: true) }
         #if VOXLEY_SPARKLE
         VoxleyUpdates.shared.start(dictation: controller)
         #endif
@@ -77,13 +89,24 @@ final class VoxleyDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.async { self.setup.show(self.controller) }
     }
 
-    func openAbout() { DispatchQueue.main.async { self.about.show() } }
+    func openAbout() { DispatchQueue.main.async { self.about.show(openSupport: self.openSupport) } }
+
+    func openSupport() { DispatchQueue.main.async { self.support.show(automatic: false) } }
+
+    /// The card waits while another Voxley window, sheet or modal is up, or while the person is typing.
+    private var canPresentSupport: Bool {
+        guard NSApp.modalWindow == nil, !support.isVisible, !setup.isVisible else { return false }
+        guard !NSApp.windows.contains(where: { $0.isVisible && $0.attachedSheet != nil }) else { return false }
+        let sinceKey = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .keyDown)
+        return sinceKey >= 2
+    }
 }
 
 private struct MenuCommands: View {
     let controller: DictationController
     let openOnboarding: () -> Void
     let openAbout: () -> Void
+    let openSupport: () -> Void
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
@@ -118,6 +141,7 @@ private struct MenuCommands: View {
             .disabled(!VoxleyUpdates.shared.canCheck || controller.phase != .idle)
         #endif
         Button("About Voxley", action: openAbout)
+        Button("Support Voxley…", action: openSupport)
         Button("Get App Help") { NSWorkspace.shared.open(VoxleySupport.ticketURL) }
         Button("Send Feedback…") { NSWorkspace.shared.open(VoxleySupport.feedbackURL) }
         Button("Quit Voxley") { NSApp.terminate(nil) }

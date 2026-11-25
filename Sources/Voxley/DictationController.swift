@@ -45,6 +45,8 @@ final class DictationController {
     private(set) var testingPracticePaste = false
     @ObservationIgnored weak var practiceWindow: NSWindow?
     @ObservationIgnored weak var shortcutProbeWindow: NSWindow?
+    @ObservationIgnored var onDictationStarted: (() -> Void)?
+    @ObservationIgnored var onDictationFinished: (() -> Void)?
     var message: String?
 
     var preferences: Preferences {
@@ -231,6 +233,7 @@ final class DictationController {
         if target.isPractice { lastPracticePasteStatus = nil }
         pasteNeedsAttention = false
         phase = .preparing
+        if !target.isPractice { onDictationStarted?() }
 
         if speechPreparation == nil { prepareSpeech() }
         let preparation = speechPreparation
@@ -331,6 +334,8 @@ final class DictationController {
             library.history.insert(entry, at: 0)
             save()
         }
+        VoxleyEngagement.shared.completedDictation(text: text)
+        onDictationFinished?()
     }
 
     func exportBackup() {

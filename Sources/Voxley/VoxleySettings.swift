@@ -8,6 +8,7 @@ struct VoxleySettings: View {
     let launchAtLogin: LaunchAtLogin
     let openOnboarding: () -> Void
     let openAbout: () -> Void
+    let openSupport: () -> Void
     @State private var ruleApp = ""
     @State private var ruleMode = WritingMode.clean
 
@@ -17,7 +18,7 @@ struct VoxleySettings: View {
                 settings.tabItem { Label("General", systemImage: "gearshape") }
                 modes.tabItem { Label("Modes", systemImage: "slider.horizontal.3") }
                 dictionary.tabItem { Label("Dictionary", systemImage: "text.book.closed") }
-                VoxleyAbout().tabItem { Label("About", systemImage: "info.circle") }
+                VoxleyAbout(openSupport: openSupport).tabItem { Label("About", systemImage: "info.circle") }
             }
             if let message = controller.message {
                 Text(message)

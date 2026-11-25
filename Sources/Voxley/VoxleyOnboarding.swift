@@ -6,6 +6,8 @@ final class SetupWindow: NSObject, NSWindowDelegate {
     private var window: NSWindow?
     private weak var controller: DictationController?
 
+    var isVisible: Bool { window?.isVisible ?? false }
+
     func show(_ controller: DictationController) {
         if let window {
             bringForward(window)
