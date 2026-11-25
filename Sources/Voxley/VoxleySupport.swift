@@ -54,7 +54,6 @@ struct VoxleySupportView: View {
     var isAutomatic = false
     let dismiss: () -> Void
     @Environment(\.openURL) private var openURL
-    @State private var didReset = false
     @State private var shareAnchor = NSView()
 
     private var appIcon: NSImage {
@@ -85,13 +84,13 @@ struct VoxleySupportView: View {
                         .background(SupportShareAnchor(view: shareAnchor))
                         .accessibilityIdentifier("voxleySupportShare")
                         Button { visit(.support, url: VoxleyEngagement.ticketURL) } label: {
-                            row("Open a Support Ticket", detail: "Create a ticket or follow replies on Protomota",
+                            row("Open a Support Ticket", detail: "Personal help from a real person · $9.99 per ticket",
                                 icon: "headphones", kind: .support)
                         }
                         .accessibilityIdentifier("voxleySupportTicket")
-                        Link(destination: VoxleyEngagement.protomotaAppsURL) {
+                        Button { visit(.apps, url: VoxleyEngagement.protomotaAppsURL) } label: {
                             row("More Free Apps by Protomota", detail: "Explore more free apps from our studio",
-                                icon: "arrow.up.right.square")
+                                icon: "arrow.up.right.square", kind: .apps)
                         }
                         .accessibilityIdentifier("voxleySupportApps")
                     }
@@ -109,8 +108,7 @@ struct VoxleySupportView: View {
         .tint(.voxleyAccent)
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("voxleySupportCard")
-        .onAppear { engagement.supportCardOpened() }
-    }
+            }
 
     private var header: some View {
         HStack(alignment: .top, spacing: 16) {
@@ -141,39 +139,38 @@ struct VoxleySupportView: View {
     }
 
     private var status: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(statusText)
-                .font(.callout).foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-            Button("Reset saved clicks") {
-                engagement.resetClickedActions()
-                didReset = true
-            }
-            .buttonStyle(.plain)
-            .font(.callout.weight(.medium))
-            .foregroundStyle(Color.voxleyAccent)
-            .padding(.vertical, 6)
-            .accessibilityIdentifier("voxleySupportReset")
-        }
+        Text(statusText)
+            .font(.callout).foregroundStyle(.secondary)
+            .fixedSize(horizontal: false, vertical: true)
     }
 
     private var statusText: String {
-        if didReset {
-            return engagement.automaticRemindersStopped
-                ? "Saved clicks reset. Automatic reminders stay off." : "Saved clicks reset."
-        }
-        return (engagement.automaticRemindersStopped
-                ? "Automatic reminders are off. " : "Any one action turns off automatic reminders. ")
-            + "Checkmarks remember clicks, not completed reviews, tips or shares."
+        if engagement.allBoxesChecked { return "Every box is checked. Thank you for supporting Voxley." }
+        return "Checkmarks show which buttons you’ve opened."
     }
 
     private var footer: some View {
-        HStack(spacing: 18) {
+        HStack(spacing: 12) {
             Text("Dictation features stay free.\nPaid support and tips are optional.")
                 .font(.callout).foregroundStyle(.secondary)
             Spacer(minLength: 0)
+            if isAutomatic {
+                Button {
+                    engagement.optOut()
+                    dismiss()
+                } label: {
+                    Text("Don’t remind me again")
+                        .font(.callout.weight(.medium))
+                        .foregroundStyle(.secondary)
+                        .padding(.horizontal, 10)
+                        .frame(minHeight: 36)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .accessibilityIdentifier("voxleySupportOptOut")
+            }
             Button(action: dismiss) {
-                Text(isAutomatic ? "Back to Dictation" : "Back to Settings")
+                Text(isAutomatic ? "Later" : "Back to Settings")
                     .font(.callout.weight(.semibold))
                     .padding(.horizontal, 18)
                     .frame(minHeight: 36)
@@ -187,15 +184,13 @@ struct VoxleySupportView: View {
     }
 
     private func visit(_ action: VoxleyEngagement.Action, url: URL) {
-        engagement.recordClick(action)
-        didReset = false
+        let finished = engagement.recordClick(action)
         openURL(url)
-        dismiss()
+        if finished, isAutomatic { dismiss() }
     }
 
     private func share() {
         engagement.recordClick(.share)
-        didReset = false
         SupportSharing.shared.present(from: shareAnchor)
     }
 
@@ -233,13 +228,17 @@ struct VoxleySupportView: View {
     }
 }
 
-/// Settings rows that lead to feedback, the support card and Protomota's other apps.
+/// Settings rows for support, feedback, paid help and Protomota's other apps.
 struct VoxleySupportLinks: View {
     let openSupport: () -> Void
     @Environment(\.openURL) private var openURL
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
+            Button(action: openSupport) {
+                linkRow("Tip, share, or send feedback", icon: "heart")
+            }
+            .accessibilityIdentifier("settingsSupportVoxley")
             Button {
                 VoxleyEngagement.shared.recordClick(.review)
                 openURL(VoxleyEngagement.feedbackURL)
@@ -247,25 +246,39 @@ struct VoxleySupportLinks: View {
                 linkRow("Share Your Experience", icon: "star")
             }
             .accessibilityIdentifier("settingsRateVoxley")
-            Button(action: openSupport) {
-                linkRow("More Information & Support", icon: "heart")
+            Button {
+                VoxleyEngagement.shared.recordClick(.support)
+                openURL(VoxleyEngagement.ticketURL)
+            } label: {
+                linkRow("Technical Support", detail: "Personal help from a real person · $9.99 per ticket",
+                        icon: "headphones")
             }
-            .accessibilityIdentifier("settingsSupportVoxleyCard")
-            Link(destination: VoxleyEngagement.protomotaAppsURL) {
+            .accessibilityIdentifier("settingsTechnicalSupport")
+            Button {
+                VoxleyEngagement.shared.recordClick(.apps)
+                openURL(VoxleyEngagement.protomotaAppsURL)
+            } label: {
                 linkRow("More Free Apps by Protomota", icon: "arrow.up.right.square")
             }
             .accessibilityIdentifier("settingsProtomotaApps")
+            Button(action: openSupport) {
+                linkRow("More Information & Support", icon: "info.circle")
+            }
+            .accessibilityIdentifier("settingsSupportVoxleyCard")
         }
         .buttonStyle(.plain)
     }
 
-    private func linkRow(_ title: LocalizedStringKey, icon: String) -> some View {
+    private func linkRow(_ title: LocalizedStringKey, detail: LocalizedStringKey? = nil, icon: String) -> some View {
         HStack(spacing: 12) {
             Image(systemName: icon)
                 .foregroundStyle(Color.voxleyAccent)
                 .frame(width: 22)
                 .accessibilityHidden(true)
-            Text(title).font(.callout.weight(.semibold))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title).font(.callout.weight(.semibold))
+                if let detail { Text(detail).font(.caption).foregroundStyle(.secondary) }
+            }
             Spacer(minLength: 8)
             Image(systemName: "arrow.up.right")
                 .font(.caption.weight(.semibold))
