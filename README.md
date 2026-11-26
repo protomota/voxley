@@ -45,6 +45,17 @@ Voxley starts in **Verbatim**, which keeps exactly what Apple Speech heard. Pick
 | **Notes** | Concise notes, with bullets where they help. Facts, names, and action items are kept. |
 | **Email** | A clear email body in your tone. It never invents a subject, greeting, or signature. |
 
+## Talk it out, then refine it
+
+Some ideas need a second pass before they go anywhere. Press **Control–Option–R** instead of your dictation shortcut, speak, and when you stop Voxley opens a small **Refine** window with your words instead of pasting them.
+
+<p align="center"><img src="docs/readme/refine.webp" alt="The Refine window: a dictated draft with a subject line, a request to make it friendlier, Apple Intelligence's short reply, and Copy and Return to Mail" width="520"></p>
+
+- **Hands off the keys.** The window stays put, so you can type into the draft or keep talking. Speaking with the Refine shortcut while it is open sends your words as the next request.
+- **Chat with Apple Intelligence.** Press **Refine**, or ask for something specific like “shorter” or “add a subject line.” Go back and forth until it reads right, and **Undo** steps back a round. It all runs on your Mac with the on-device Foundation Model.
+- **Copy it where you were.** **Copy and Return** copies the draft and brings back the app you started in, ready for ⌘V. **Open Refine Window…** in the menu bar starts one from scratch.
+- **Completely optional.** Control–Shift–Space still pastes straight away. Rebind or turn off Refine in **Settings → General → Refine**.
+
 ## Teach it how you talk
 
 | | |
@@ -52,7 +63,7 @@ Voxley starts in **Verbatim**, which keeps exactly what Apple Speech heard. Pick
 | **A mode for each app** | Mail can get Email and your notes app can get Notes, while everything else keeps your default. |
 | **Replacements** | Say one thing and write another. Whole-word matches in any casing, so a name is spelled your way every time. |
 | **Vocabulary hints** | List names and uncommon words. Apple Speech uses them as hints while it listens. |
-| **Your own shortcut** | Any key with a modifier, or a function key. Voxley checks that it hears both the press and the release. |
+| **Your own shortcuts** | Any key with a modifier, or a function key, for dictation and for Refine. Voxley checks that it hears both the press and the release. |
 | **Your language** | Any language Apple Speech supports on your Mac. The first dictation in a new language can take longer while macOS installs it. |
 | **History you control** | A local text history so a transcript is never lost. Turn it off in Settings to stop saving new entries. |
 | **Backup and restore** | Export settings, dictionary, app modes, and history to one JSON file. Restore merges transcripts without duplicates. |
@@ -65,7 +76,7 @@ Voxley starts in **Verbatim**, which keeps exactly what Apple Speech heard. Pick
 - **Optional cleanup, also on device.** Text cleanup uses Apple Intelligence’s on-device Foundation Model.
 - **Your backups are readable.** A backup contains transcript text, so keep it somewhere safe. Sparkle uses its own preferences and does not send dictation data.
 
-<sub>The images above are captures of the scripted preview on [voxley.si](https://voxley.si/), which reproduces the Voxley recorder with example text.</sub>
+<sub>The images above are captures of the scripted preview and the Refine illustration on [voxley.si](https://voxley.si/), which reproduce Voxley with example text.</sub>
 
 ## Get started
 
@@ -75,7 +86,7 @@ Voxley starts in **Verbatim**, which keeps exactly what Apple Speech heard. Pick
 4. Under **Practice dictation**, click the field and dictate the sample phrase. **Test Paste** checks pasting separately from the microphone and shortcut. Practice phrases are not saved to history.
 5. To use a different shortcut, open **Keyboard shortcut → Record Shortcut…** and press the combination. Common editing commands such as **Command–V** are reserved. Press **Escape** to cancel.
 
-For text cleanup, check **Apple Intelligence** in Voxley Settings. If it is off, enable it in [Apple Intelligence & Siri settings](x-apple.systempreferences:com.apple.Siri-Settings.extension) and wait for the model to become available.
+For text cleanup and Refine, check **Apple Intelligence** in Voxley Settings. If it is off, enable it in [Apple Intelligence & Siri settings](x-apple.systempreferences:com.apple.Siri-Settings.extension) and wait for the model to become available.
 
 ## Build it yourself
 
