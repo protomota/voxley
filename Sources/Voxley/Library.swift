@@ -43,6 +43,20 @@ struct Preferences: Codable, Sendable {
     var vocabulary = ""
     var replacements: [WordReplacement] = []
     var appModes: [String: WritingMode] = [:]
+    // Optional so libraries and backups saved before Refine keep decoding.
+    var refineShortcut: Shortcut?
+    var refineDisabled: Bool?
+
+    /// The second shortcut that opens the Refine window instead of pasting.
+    var refineShortcutKey: Shortcut {
+        get { refineShortcut ?? .refineDefault }
+        set { refineShortcut = newValue }
+    }
+
+    var refineEnabled: Bool {
+        get { refineDisabled != true }
+        set { refineDisabled = newValue ? nil : true }
+    }
 
     var vocabularyEntries: [String] {
         var seen = Set<String>()

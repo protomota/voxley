@@ -5,6 +5,8 @@ import Carbon
 
 @MainActor
 final class GlobalShortcut {
+    /// Each shortcut gets its own hot key signature so two registrations never consume each other's events.
+    nonisolated let signature: OSType
     var onEvent: ((Bool, TimeInterval) -> Void)?
     var onInterrupted: (() -> Void)?
     private var handler: EventHandlerRef?
@@ -18,6 +20,10 @@ final class GlobalShortcut {
     private var lastModifiers: UInt32 = 0
     private var modifierPressTime: TimeInterval?
     private var modifierDelay: Task<Void, Never>?
+
+    init(signature: OSType = 0x56584C59) {
+        self.signature = signature
+    }
 
     func register(_ shortcut: Shortcut) -> Bool {
         guard !shortcut.isStandardEditingShortcut else { return false }
@@ -35,7 +41,7 @@ final class GlobalShortcut {
             guard result == noErr else { return false }
         }
         nextID &+= 1
-        let id = EventHotKeyID(signature: 0x56584C59, id: nextID)
+        let id = EventHotKeyID(signature: signature, id: nextID)
         var newHotkey: EventHotKeyRef?
         let status = RegisterEventHotKey(shortcut.code, shortcut.modifiers, id, dispatcher,
                                          UInt32(kEventHotKeyExclusive), &newHotkey)
@@ -157,8 +163,8 @@ private func shortcutCallback(_ handler: EventHandlerCallRef?, _ event: EventRef
     var id = EventHotKeyID()
     guard GetEventParameter(event, OSType(kEventParamDirectObject), OSType(typeEventHotKeyID), nil,
                             MemoryLayout<EventHotKeyID>.size, nil, &id) == noErr,
-          id.signature == 0x56584C59 else { return OSStatus(eventNotHandledErr) }
-    let shortcut = Unmanaged<GlobalShortcut>.fromOpaque(context).takeUnretainedValue()
+          case let shortcut = Unmanaged<GlobalShortcut>.fromOpaque(context).takeUnretainedValue(),
+          id.signature == shortcut.signature else { return OSStatus(eventNotHandledErr) }
     let pressed = GetEventKind(event) == OSType(kEventHotKeyPressed)
     let registration = id.id
     let time = GetEventTime(event)

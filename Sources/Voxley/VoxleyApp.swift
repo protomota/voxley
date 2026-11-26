@@ -14,7 +14,8 @@ struct VoxleyApp: App {
     var body: some Scene {
         MenuBarExtra("Voxley", systemImage: menuIcon) {
             MenuCommands(controller: delegate.controller, openOnboarding: delegate.openOnboarding,
-                         openAbout: delegate.openAbout, openSupport: delegate.openSupport)
+                         openAbout: delegate.openAbout, openSupport: delegate.openSupport,
+                         openRefine: delegate.openRefine)
         }
 
         Settings {
@@ -47,6 +48,7 @@ final class VoxleyDelegate: NSObject, NSApplicationDelegate {
     let controller = DictationController()
     let launchAtLogin = LaunchAtLogin()
     private let recorder = RecorderPanel()
+    private let refine = RefineWindow()
     private let setup = SetupWindow()
     private let about = AboutWindow()
     private let support = SupportWindow()
@@ -63,6 +65,12 @@ final class VoxleyDelegate: NSObject, NSApplicationDelegate {
         recorder.connect(controller)
         controller.onDictationStarted = { [unowned self] in supportPrompter.dictationStarted() }
         controller.onDictationFinished = { [unowned self] in supportPrompter.dictationFinished() }
+        controller.onRefineReady = { [unowned self] text, target in
+            refine.present(text, from: target, locale: controller.preferences.locale)
+        }
+        if CommandLine.arguments.contains("--refine-preview") {
+            refine.openEmpty(locale: controller.preferences.locale)
+        }
         if CommandLine.arguments.contains("--support-card") { openSupport() }
         if CommandLine.arguments.contains("--support-card-automatic") { support.show(automatic: true) }
         #if VOXLEY_SPARKLE
@@ -89,13 +97,17 @@ final class VoxleyDelegate: NSObject, NSApplicationDelegate {
         DispatchQueue.main.async { self.setup.show(self.controller) }
     }
 
+    func openRefine() {
+        DispatchQueue.main.async { self.refine.openEmpty(locale: self.controller.preferences.locale) }
+    }
+
     func openAbout() { DispatchQueue.main.async { self.about.show(openSupport: self.openSupport) } }
 
     func openSupport() { DispatchQueue.main.async { self.support.show(automatic: false) } }
 
     /// The card waits while another Voxley window, sheet or modal is up, or while the person is typing.
     private var canPresentSupport: Bool {
-        guard NSApp.modalWindow == nil, !support.isVisible, !setup.isVisible else { return false }
+        guard NSApp.modalWindow == nil, !support.isVisible, !setup.isVisible, !refine.isVisible else { return false }
         guard !NSApp.windows.contains(where: { $0.isVisible && $0.attachedSheet != nil }) else { return false }
         let sinceKey = CGEventSource.secondsSinceLastEventType(.combinedSessionState, eventType: .keyDown)
         return sinceKey >= 2
@@ -107,12 +119,19 @@ private struct MenuCommands: View {
     let openOnboarding: () -> Void
     let openAbout: () -> Void
     let openSupport: () -> Void
+    let openRefine: () -> Void
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
         Button("Voxley Onboarding…", action: openOnboarding)
         Divider()
         Text("Tap or hold \(controller.preferences.shortcutKey.label) to dictate")
+        if controller.preferences.refineEnabled {
+            Text(controller.refineShortcutReady
+                 ? "Tap or hold \(controller.preferences.refineShortcutKey.label) to dictate and refine"
+                 : "Refine shortcut unavailable. Choose another in Settings.")
+        }
+        Button("Open Refine Window…", action: openRefine)
 
         if controller.phase.isCapturing {
             Button("Cancel Dictation") { controller.cancel() }

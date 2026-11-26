@@ -10,6 +10,11 @@ struct Shortcut: Codable, Equatable, Sendable {
         code: UInt32(kVK_Space), modifiers: UInt32(controlKey | shiftKey), keyLabel: "Space"
     )
 
+    /// Control–Option–R opens the Refine window. R is for Refine.
+    static let refineDefault = Shortcut(
+        code: UInt32(kVK_ANSI_R), modifiers: UInt32(controlKey | optionKey), keyLabel: "R"
+    )
+
     // A modifier chord has no ordinary key code. Existing shortcut files keep their format.
     private static let modifierOnlyCode = UInt32.max
     private static let functionModifier: UInt32 = 1 << 24

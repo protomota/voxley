@@ -217,6 +217,10 @@ private struct VoxleyOnboarding: View {
             }
             Text("Hold to talk and release to paste. For hands-free dictation, tap once to start and again to stop.")
                 .font(.callout).foregroundStyle(.secondary)
+            if controller.preferences.refineEnabled {
+                Text("Want to shape an idea before it lands? Press \(controller.preferences.refineShortcutKey.label) instead to open the Refine window, where you can edit and chat with Apple Intelligence before copying.")
+                    .font(.callout).foregroundStyle(.secondary)
+            }
         }
         .onChange(of: controller.preferences.shortcutKey) {
             startingPresses = controller.shortcutPresses

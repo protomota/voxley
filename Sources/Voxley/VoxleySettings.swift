@@ -151,6 +151,21 @@ struct VoxleySettings: View {
                 }
                 Toggle("Save transcript history", isOn: $controller.preferences.retainHistory)
             }
+            SwiftUI.Section("Refine") {
+                Toggle("Refine shortcut", isOn: Binding(
+                    get: { controller.preferences.refineEnabled },
+                    set: controller.setRefineEnabled
+                ))
+                if controller.preferences.refineEnabled {
+                    ShortcutRecorder(controller: controller, kind: .refine)
+                    if !controller.refineShortcutReady {
+                        Text("This shortcut couldn’t be registered. Record a different one.")
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                Text("Dictate with the Refine shortcut and Voxley opens a small window instead of pasting. Edit by typing, chat with Apple Intelligence to refine the idea, then copy it into any app.")
+                    .foregroundStyle(.secondary)
+            }
             #if VOXLEY_SPARKLE
             SwiftUI.Section("Updates") {
                 Toggle("Automatically install updates", isOn: Binding(
@@ -191,6 +206,7 @@ struct VoxleySettings: View {
 
 struct ShortcutRecorder: View {
     let controller: DictationController
+    var kind = ShortcutKind.dictation
     var windowForRecording: (() -> NSWindow?)? = nil
     @State private var monitor: Any?
     @State private var instruction = "Press your shortcut…"
@@ -201,10 +217,10 @@ struct ShortcutRecorder: View {
 
     var body: some View {
         HStack {
-            Text("Keyboard shortcut")
+            Text(kind == .dictation ? "Keyboard shortcut" : "Refine shortcut")
             Spacer()
             if monitor == nil {
-                Text(controller.preferences.shortcutKey.label)
+                Text(controller.shortcutLabel(kind))
                     .monospaced()
                 Button("Record Shortcut…", action: begin)
                     .disabled(controller.phase != .idle)
@@ -231,7 +247,7 @@ struct ShortcutRecorder: View {
         instruction = "Hold the keys together…"
         candidate = nil
         modifierCapture = ModifierChordCapture()
-        controller.beginShortcutRecording()
+        controller.beginShortcutRecording(kind)
         monitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .keyUp, .flagsChanged]) { event in
             guard (event.window ?? NSApp.keyWindow) === window else { return event }
             switch event.type {
@@ -250,7 +266,7 @@ struct ShortcutRecorder: View {
         }
         if monitor == nil {
             recordingWindow = nil
-            controller.cancelShortcutRecording()
+            controller.cancelShortcutRecording(kind)
             controller.message = "Couldn’t start shortcut capture. Try again."
         }
     }
@@ -285,7 +301,7 @@ struct ShortcutRecorder: View {
     }
 
     private func finish(_ shortcut: Shortcut?) {
-        if let shortcut, !controller.saveRecordedShortcut(shortcut) {
+        if let shortcut, !controller.saveRecordedShortcut(shortcut, kind: kind) {
             candidate = nil
             instruction = "\(shortcut.label) is unavailable. Try another."
             return
@@ -294,7 +310,7 @@ struct ShortcutRecorder: View {
         monitor = nil
         recordingWindow = nil
         candidate = nil
-        if shortcut == nil { controller.cancelShortcutRecording() }
+        if shortcut == nil { controller.cancelShortcutRecording(kind) }
     }
 }
 

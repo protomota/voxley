@@ -69,16 +69,17 @@ private final class RecorderHostingView: NSHostingView<RecorderView> {
 private struct RecorderView: View {
     let controller: DictationController
     private var recording: Bool { controller.phase == .recording }
+    private var refining: Bool { controller.captureKind == .refine }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
-            RecorderTranscript(text: controller.liveText, status: controller.phase.title)
+            RecorderTranscript(text: controller.liveText, status: controller.statusTitle)
 
             HStack(spacing: 10) {
                 if recording {
-                    Image(systemName: "mic.fill")
-                        .foregroundStyle(.white)
-                        .accessibilityLabel("Microphone recording")
+                    Image(systemName: refining ? "sparkles" : "mic.fill")
+                        .foregroundStyle(refining ? Color.voxleyAccent : .white)
+                        .accessibilityLabel(refining ? "Recording for Refine" : "Microphone recording")
                     RecorderWave(frame: controller.waveform)
                         .frame(maxWidth: 220)
                         .frame(height: 60)
@@ -102,7 +103,7 @@ private struct RecorderView: View {
                     .buttonStyle(.bordered)
                     .controlSize(.small)
                     .accessibilityLabel("Stop recording")
-                    .help("Stop recording and paste the transcript")
+                    .help(refining ? "Stop recording and open Refine" : "Stop recording and paste the transcript")
                 } else {
                     ProgressView()
                         .controlSize(.small)
@@ -123,7 +124,8 @@ private struct RecorderView: View {
         }
         .overlay {
             RoundedRectangle(cornerRadius: 17)
-                .strokeBorder(.quaternary, lineWidth: 1)
+                .strokeBorder(refining ? AnyShapeStyle(Color.voxleyAccent.opacity(0.7)) : AnyShapeStyle(.quaternary),
+                              lineWidth: 1)
                 .allowsHitTesting(false)
         }
         .padding(2)

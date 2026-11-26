@@ -22,6 +22,15 @@ enum Phase: Equatable {
     }
 }
 
+/// Which shortcut started a dictation. Paste is the original flow. Refine opens the Refine window instead.
+enum CaptureKind: Equatable {
+    case paste, refine
+}
+
+enum ShortcutKind {
+    case dictation, refine
+}
+
 @MainActor
 @Observable
 final class DictationController {
@@ -29,6 +38,8 @@ final class DictationController {
     private(set) var liveText = ""
     private(set) var waveform = WaveformFrame.silence
     private(set) var recordingWindow: NSRect?
+    private(set) var captureKind = CaptureKind.paste
+    private(set) var refineShortcutReady = false
     private var latest: Transcript?
     private(set) var locales: [Locale] = []
     private(set) var shortcutReady = false
@@ -47,6 +58,8 @@ final class DictationController {
     @ObservationIgnored weak var shortcutProbeWindow: NSWindow?
     @ObservationIgnored var onDictationStarted: (() -> Void)?
     @ObservationIgnored var onDictationFinished: (() -> Void)?
+    /// Receives the transcript of a Refine dictation and the app it started in.
+    @ObservationIgnored var onRefineReady: ((String, Destination) -> Void)?
     var message: String?
 
     var preferences: Preferences {
@@ -63,6 +76,8 @@ final class DictationController {
     private var library: Library
     @ObservationIgnored private let libraryURL: URL
     @ObservationIgnored private let shortcut = GlobalShortcut()
+    @ObservationIgnored private let refineShortcut = GlobalShortcut(signature: 0x56584C52)
+    @ObservationIgnored private var refineGesture = DictationShortcutGesture()
     @ObservationIgnored private let deliveryLog = Logger(subsystem: "com.protomota.voxley", category: "Delivery")
     @ObservationIgnored private var shortcutGesture = DictationShortcutGesture()
     @ObservationIgnored private var live: LiveDictation?
@@ -98,24 +113,90 @@ final class DictationController {
             self.shortcutPressed = false
             if self.shortcutGesture.interrupt() { self.cancel() }
         }
+        refineShortcut.onEvent = { [weak self] pressed, time in self?.handleRefineShortcut(pressed, at: time) }
+        refineShortcut.onInterrupted = { [weak self] in
+            guard let self else { return }
+            if self.refineGesture.interrupt() { self.cancel() }
+        }
         if preferences.shortcutKey.isStandardEditingShortcut {
             let oldLabel = preferences.shortcutKey.label
             preferences.shortcutKey = .controlShiftSpace
             message = "Voxley reset \(oldLabel) to \(Shortcut.controlShiftSpace.label) so the editing command works normally."
         }
         retryShortcut()
+        retryRefineShortcut()
         Task { locales = await SpeechTranscriber.supportedLocales }
         prepareSpeech()
     }
 
-    func beginShortcutRecording() {
+    var statusTitle: String {
+        guard captureKind == .refine else { return phase.title }
+        switch phase {
+        case .recording: return "Listening for Refine…"
+        case .transcribing: return "Getting your words ready to refine…"
+        default: return phase.title
+        }
+    }
+
+    func shortcutLabel(_ kind: ShortcutKind) -> String {
+        kind == .dictation ? preferences.shortcutKey.label : preferences.refineShortcutKey.label
+    }
+
+    func beginShortcutRecording(_ kind: ShortcutKind = .dictation) {
+        guard kind == .dictation else {
+            refineGesture = DictationShortcutGesture()
+            message = nil
+            refineShortcut.suspend()
+            return
+        }
         shortcutGesture = DictationShortcutGesture()
         shortcutPressed = false
         message = nil
         shortcut.suspend()
     }
 
+    func saveRecordedShortcut(_ recorded: Shortcut, kind: ShortcutKind) -> Bool {
+        guard kind == .refine else { return saveRecordedShortcut(recorded) }
+        let dictation = preferences.shortcutKey
+        guard recorded.code != dictation.code || recorded.modifiers != dictation.modifiers,
+              refineShortcut.register(recorded) else { return false }
+        refineShortcutReady = true
+        message = "Refine shortcut saved: \(recorded.label)"
+        if preferences.refineShortcutKey != recorded { preferences.refineShortcutKey = recorded }
+        return true
+    }
+
+    func cancelShortcutRecording(_ kind: ShortcutKind) {
+        if kind == .refine { retryRefineShortcut() } else { cancelShortcutRecording() }
+    }
+
+    func setRefineEnabled(_ enabled: Bool) {
+        preferences.refineEnabled = enabled
+        retryRefineShortcut()
+    }
+
+    func retryRefineShortcut() {
+        guard preferences.refineEnabled else {
+            refineShortcut.suspend()
+            refineShortcutReady = false
+            return
+        }
+        let refine = preferences.refineShortcutKey
+        let dictation = preferences.shortcutKey
+        guard refine.code != dictation.code || refine.modifiers != dictation.modifiers else {
+            refineShortcut.suspend()
+            refineShortcutReady = false
+            return
+        }
+        refineShortcutReady = refineShortcut.register(refine)
+        deliveryLog.info("Refine shortcut registered: \(self.refineShortcutReady, privacy: .public)")
+    }
+
     func saveRecordedShortcut(_ recorded: Shortcut) -> Bool {
+        let refine = preferences.refineShortcutKey
+        if preferences.refineEnabled, recorded.code == refine.code, recorded.modifiers == refine.modifiers {
+            return false
+        }
         guard shortcut.register(recorded) else { return false }
         shortcutReady = true
         message = "Shortcut saved: \(recorded.label)"
@@ -217,8 +298,22 @@ final class DictationController {
         }
     }
 
-    private func start() {
+    private func handleRefineShortcut(_ pressed: Bool, at time: TimeInterval) {
+        deliveryLog.debug("Refine shortcut \(pressed ? "pressed" : "released", privacy: .public)")
+        let action = refineGesture.update(pressed: pressed, time: time,
+                                          canStart: phase == .idle, isRecording: phase.isCapturing)
+        switch action {
+        case .start: start(kind: .refine)
+        case .stop:
+            if phase == .preparing { cancel() }
+            else { stopRecording() }
+        case .none: break
+        }
+    }
+
+    private func start(kind: CaptureKind = .paste) {
         guard phase == .idle, !testingPracticePaste else { return }
+        captureKind = kind
         let capture = LiveDictation()
         let id = UUID()
         let snapshot = preferences
@@ -233,7 +328,7 @@ final class DictationController {
         if target.isPractice { lastPracticePasteStatus = nil }
         pasteNeedsAttention = false
         phase = .preparing
-        if !target.isPractice { onDictationStarted?() }
+        if !target.isPractice, kind == .paste { onDictationStarted?() }
 
         if speechPreparation == nil { prepareSpeech() }
         let preparation = speechPreparation
@@ -288,10 +383,16 @@ final class DictationController {
     func stopRecording() {
         guard phase == .recording, let live, let target = destination, let snapshot = capturePreferences else { return }
         phase = .transcribing
+        let kind = captureKind
         task = Task { [self] in
             do {
                 let original = try await live.finish()
                 try Task.checkCancellation()
+                if kind == .refine {
+                    try openRefine(original, snapshot: snapshot, target: target)
+                    reset()
+                    return
+                }
                 let mode = target.isPractice ? .verbatim : target.identifier.flatMap { snapshot.appModes[$0] } ?? snapshot.mode
                 try await complete(original, mode: mode, snapshot: snapshot, source: target.name, target: target)
             } catch {
@@ -299,6 +400,20 @@ final class DictationController {
             }
             reset()
         }
+    }
+
+    /// A Refine dictation skips cleanup and paste. The words go to the Refine window,
+    /// and history keeps them so they are never lost.
+    private func openRefine(_ original: String, snapshot: Preferences, target: Destination) throws {
+        let text = snapshot.applyingReplacements(to: original)
+        guard !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { throw VoxleyError.noSpeech }
+        let entry = Transcript(original: original, text: text, source: "Refine · \(target.name)", mode: .verbatim)
+        latest = entry
+        if preferences.retainHistory {
+            library.history.insert(entry, at: 0)
+            save()
+        }
+        onRefineReady?(text, target)
     }
 
     func cancel() {
@@ -409,6 +524,7 @@ final class DictationController {
             diskReadable = true
             library = merged
             shortcutReady = shortcut.register(preferences.shortcutKey)
+            retryRefineShortcut()
             prepareSpeech()
             message = restoredShortcut ? "Backup restored." : "Backup restored. The saved shortcut was unavailable, so Voxley kept your current shortcut."
         } catch {
@@ -420,6 +536,8 @@ final class DictationController {
         preparationTimeout?.cancel()
         preparationTimeout = nil
         shortcutGesture = DictationShortcutGesture()
+        refineGesture = DictationShortcutGesture()
+        captureKind = .paste
         phase = .idle
         task = nil
         captureID = nil
