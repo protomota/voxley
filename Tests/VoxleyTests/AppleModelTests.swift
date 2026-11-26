@@ -124,3 +124,27 @@ func foundationModelRefinesOrPreservesTranscript() async {
         #expect(result.note != nil)
     }
 }
+
+@Test(.enabled(if: fixture != nil, "Run Scripts/test-app.sh --with-models to exercise local Apple models"))
+@MainActor
+func refineWindowChatsWithTheFoundationModel() async throws {
+    let idea = "um so I'm thinking we send a short weekly digest to customers with the three most useful tips, maybe on Mondays"
+    let session = RefineSession()
+    session.begin(text: idea, source: "Notes", locale: "en-US")
+    guard session.modelReady else {
+        #expect(session.messages.last?.role == .note)
+        return
+    }
+    for request in ["", "make it friendlier and add a subject line"] {
+        session.request = request
+        session.refine()
+        while session.isThinking { try await Task.sleep(for: .milliseconds(100)) }
+        let reply = try #require(session.messages.last)
+        print("Refine \(request.isEmpty ? "Refine" : request): \(reply.text)\n\(session.draft)")
+        #expect(reply.role == .assistant)
+    }
+    #expect(session.previousDrafts.count >= 1)
+    #expect(session.draft.localizedCaseInsensitiveContains("digest") || session.draft.localizedCaseInsensitiveContains("tips"))
+    session.undo()
+    #expect(session.draft != idea || session.previousDrafts.isEmpty)
+}

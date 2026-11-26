@@ -152,7 +152,7 @@ struct VoxleySettings: View {
                 Toggle("Save transcript history", isOn: $controller.preferences.retainHistory)
             }
             SwiftUI.Section("Refine") {
-                Toggle("Refine shortcut", isOn: Binding(
+                Toggle("Open Refine with a shortcut", isOn: Binding(
                     get: { controller.preferences.refineEnabled },
                     set: controller.setRefineEnabled
                 ))
