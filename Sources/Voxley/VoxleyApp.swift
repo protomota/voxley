@@ -72,6 +72,7 @@ final class VoxleyDelegate: NSObject, NSApplicationDelegate {
             refine.openEmpty(locale: controller.preferences.locale)
         }
         if CommandLine.arguments.contains("--support-card") { openSupport() }
+        if CommandLine.arguments.contains("--about") { openAbout() }
         if CommandLine.arguments.contains("--support-card-automatic") { support.show(automatic: true) }
         #if VOXLEY_SPARKLE
         VoxleyUpdates.shared.start(dictation: controller)

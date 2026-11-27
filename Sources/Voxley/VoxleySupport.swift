@@ -79,7 +79,7 @@ struct VoxleySupportView: View {
                         .background(SupportShareAnchor(view: shareAnchor))
                         .accessibilityIdentifier("voxleySupportShare")
                         Button { visit(.support, url: VoxleyEngagement.ticketURL) } label: {
-                            row("Get Help", detail: "Ask a real person through the feedback form",
+                            row("Get support", detail: "Questions, bugs and feedback. We read every note",
                                 icon: "headphones", kind: .support)
                         }
                         .accessibilityIdentifier("voxleySupportTicket")
@@ -111,7 +111,7 @@ struct VoxleySupportView: View {
                 .resizable().scaledToFit().frame(width: 62, height: 62)
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 7) {
-                Text(isAutomatic ? "YOUR DICTATION, SAVED" : "RATINGS & SUPPORT")
+                Text(isAutomatic ? "YOUR DICTATION, SAVED" : "SUPPORT")
                     .font(.system(size: 12, weight: .bold)).tracking(1.4)
                     .foregroundStyle(Color.voxleyAccent)
                 Text("Free software.\nSupported by people.")
@@ -237,18 +237,11 @@ struct VoxleySupportLinks: View {
             }
             .accessibilityIdentifier("settingsSupportVoxley")
             Button {
-                VoxleyEngagement.shared.recordClick(.review)
-                openURL(VoxleyEngagement.feedbackURL)
-            } label: {
-                linkRow("Share Your Experience", icon: "star")
-            }
-            .accessibilityIdentifier("settingsRateVoxley")
-            Button {
                 VoxleyEngagement.shared.recordClick(.support)
                 openURL(VoxleyEngagement.ticketURL)
             } label: {
-                linkRow("Technical Support", detail: "Ask a real person through the feedback form",
-                        icon: "headphones")
+                linkRow("Get support", detail: "Questions, bugs and feedback. We read every note",
+                        icon: "questionmark.bubble")
             }
             .accessibilityIdentifier("settingsTechnicalSupport")
             Button {

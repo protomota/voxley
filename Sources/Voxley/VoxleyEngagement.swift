@@ -26,7 +26,7 @@ final class VoxleyEngagement {
     nonisolated static let atomURL = URL(string: "https://projectatom.ai/")!
 
     enum Action: String, CaseIterable { case review, feedback, share, support, apps }
-    /// The four boxes on the card. Share Your Experience in Settings is tracked but not one of them.
+    /// The four boxes on the card.
     static let reminderActions: Set<Action> = [.feedback, .share, .support, .apps]
 
     private(set) var completedDictations: Int
