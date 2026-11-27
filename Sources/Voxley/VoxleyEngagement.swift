@@ -19,9 +19,11 @@ final class VoxleyEngagement {
     static let milestone = 5
     static let interval: TimeInterval = 7 * 24 * 60 * 60
     nonisolated static let website = URL(string: "https://voxley.si/")!
-    nonisolated static let protomotaAppsURL = URL(string: "https://protomota.com/apps")!
-    nonisolated static let feedbackURL = URL(string: "https://protomota.com/apps?app=voxley#feedback")!
-    nonisolated static let ticketURL = URL(string: "https://protomota.com/support?app=voxley")!
+    nonisolated static let atomAppsURL = URL(string: "https://projectatom.ai/apps")!
+    nonisolated static let feedbackURL = URL(string: "https://projectatom.ai/apps?app=voxley#feedback")!
+    /// Help requests go through the same feedback form.
+    nonisolated static let ticketURL = feedbackURL
+    nonisolated static let atomURL = URL(string: "https://projectatom.ai/")!
 
     enum Action: String, CaseIterable { case review, feedback, share, support, apps }
     /// The four boxes on the card. Share Your Experience in Settings is tracked but not one of them.

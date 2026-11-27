@@ -4,7 +4,7 @@
 
 <p align="center"><a href="https://voxley.si/download/"><strong>Download for Mac</strong></a> · <a href="#build-it-yourself">Build it yourself</a> · <a href="https://voxley.si/">Visit voxley.si</a> · <a href="LICENSE">MIT license</a></p>
 
-<p align="center"><sub>Free · Apple silicon · macOS 26 or later · Signed by Protomota and notarized by Apple</sub></p>
+<p align="center"><sub>Free · Apple silicon · macOS 26 or later · Signed and notarized by Apple</sub></p>
 
 ---
 
@@ -97,7 +97,7 @@ swift build
 swift test
 ```
 
-Or open `Package.swift` in Xcode. To build a launchable app bundle with the microphone usage description and a local code signature, use the scripts below. They are Protomota’s packaging workflow and expect a volume mounted at `/Volumes/Expand`, where build products and the synthetic test audio go.
+Or open `Package.swift` in Xcode. To build a launchable app bundle with the microphone usage description and a local code signature, use the scripts below. They are the project’s packaging workflow and expect a volume mounted at `/Volumes/Expand`, where build products and the synthetic test audio go.
 
 ```sh
 ./Scripts/build-app.sh
@@ -137,21 +137,11 @@ Voxley's source is open under the [MIT license](LICENSE). Use it, change it, shi
 ---
 
 <p align="center">
-  <a href="https://protomota.com"><img src="docs/readme/protomota-logo.png" width="40" height="40" alt="Protomota"></a>
+  <a href="https://projectatom.ai"><img src="docs/readme/atom-credit.png" width="46" height="20" alt="Project ATOM"></a>
 </p>
 
-<p align="center"><strong>Made by <a href="https://protomota.com">Protomota</a>.</strong> Free apps, open source under MIT.</p>
+<p align="center"><strong>A <a href="https://projectatom.ai">Project ATOM</a> project.</strong> Free apps, open source under MIT.</p>
 
-<p align="center">
-  <a href="https://opentalon.ai">OpenTalon</a> ·
-  <a href="https://inkspring.ai">Inkspring</a> ·
-  <a href="https://jotley.ai">Jotley</a> ·
-  <a href="https://glimmertoday.com">Glimmer</a> ·
-  <a href="https://pulsecanvas.ai">PulseCanvas</a> ·
-  <a href="https://voxley.si">Voxley</a> ·
-  <a href="https://textley.ai">Textley</a> ·
-  <a href="https://graphley.ai">Graphley</a> ·
-  <a href="https://bucksley.ai">Bucksley</a>
-</p>
+<p align="center"><a href="https://projectatom.ai/apps">See all our apps</a> · <a href="https://projectatom.ai/apps?app=voxley#feedback">Send feedback</a></p>
 
-<p align="center"><a href="https://lab.protomota.com">Join the Lab</a> · <a href="https://newsletter.protomota.com">Newsletter</a> · <a href="https://protomota.com/open-source">Open source at Protomota</a></p>
+<p align="center">A community is coming. Check back at <a href="https://projectatom.ai">projectatom.ai</a>.</p>

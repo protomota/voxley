@@ -79,12 +79,12 @@ struct VoxleySupportView: View {
                         .background(SupportShareAnchor(view: shareAnchor))
                         .accessibilityIdentifier("voxleySupportShare")
                         Button { visit(.support, url: VoxleyEngagement.ticketURL) } label: {
-                            row("Open a Support Ticket", detail: "Personal help from a real person",
+                            row("Get Help", detail: "Ask a real person through the feedback form",
                                 icon: "headphones", kind: .support)
                         }
                         .accessibilityIdentifier("voxleySupportTicket")
-                        Button { visit(.apps, url: VoxleyEngagement.protomotaAppsURL) } label: {
-                            row("More Free Apps by Protomota", detail: "Explore more free apps from our studio",
+                        Button { visit(.apps, url: VoxleyEngagement.atomAppsURL) } label: {
+                            row("More Free Apps from Project ATOM", detail: "Explore more free apps from Project ATOM",
                                 icon: "arrow.up.right.square", kind: .apps)
                         }
                         .accessibilityIdentifier("voxleySupportApps")
@@ -225,7 +225,7 @@ struct VoxleySupportView: View {
     }
 }
 
-/// Settings rows for support, feedback, free help and Protomota's other apps.
+/// Settings rows for support, feedback, free help and the other Project ATOM apps.
 struct VoxleySupportLinks: View {
     let openSupport: () -> Void
     @Environment(\.openURL) private var openURL
@@ -247,17 +247,17 @@ struct VoxleySupportLinks: View {
                 VoxleyEngagement.shared.recordClick(.support)
                 openURL(VoxleyEngagement.ticketURL)
             } label: {
-                linkRow("Technical Support", detail: "Personal help from a real person",
+                linkRow("Technical Support", detail: "Ask a real person through the feedback form",
                         icon: "headphones")
             }
             .accessibilityIdentifier("settingsTechnicalSupport")
             Button {
                 VoxleyEngagement.shared.recordClick(.apps)
-                openURL(VoxleyEngagement.protomotaAppsURL)
+                openURL(VoxleyEngagement.atomAppsURL)
             } label: {
-                linkRow("More Free Apps by Protomota", icon: "arrow.up.right.square")
+                linkRow("More Free Apps from Project ATOM", icon: "arrow.up.right.square")
             }
-            .accessibilityIdentifier("settingsProtomotaApps")
+            .accessibilityIdentifier("settingsAtomApps")
             Button(action: openSupport) {
                 linkRow("More Information & Support", icon: "info.circle")
             }

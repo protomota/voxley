@@ -45,7 +45,7 @@ struct VoxleyAbout: View {
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 3) {
                         Text("Voxley").font(.largeTitle.weight(.semibold))
-                        Text("Version \(version) · Made by Protomota")
+                        Text("Version \(version) · A Project ATOM project")
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -62,14 +62,13 @@ struct VoxleyAbout: View {
                     GlassEffectContainer(spacing: 4) {
                         HStack(spacing: 10) {
                             followLink("Website", icon: "globe", destination: Self.website)
-                            followLink("Protomota newsletter", icon: "envelope",
-                                       destination: URL(string: "https://newsletter.protomota.com/")!)
-                            followLink("Follow on X", icon: "arrow.up.right",
-                                       destination: URL(string: "https://x.com/ProtomotaLab")!)
+                            followLink("Project ATOM", icon: "atom", destination: VoxleyEngagement.atomURL)
                         }
                     }
                 }
-                Text("© 2026 Protomota, LLC").font(.caption).foregroundStyle(.secondary)
+                Text("A community is coming. Check back at projectatom.ai")
+                    .font(.callout).foregroundStyle(.secondary)
+                Text("A Project ATOM project").font(.caption).foregroundStyle(.secondary)
             }
             .padding(24)
             .frame(maxWidth: 540, alignment: .leading)
