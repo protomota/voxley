@@ -118,23 +118,18 @@ private let start = Date(timeIntervalSince1970: 1_800_000_000)
     #expect(defaults.object(forKey: "voxleySupportAutomaticRemindersStopped.v1") == nil)
 }
 
-@MainActor @Test func prompterPresentsOnlyAfterElevenIdleSeconds() async throws {
-    #expect(VoxleySupportPrompter.idleSeconds == 11)
+@MainActor @Test func prompterNeverPresentsTheCardAutomatically() async throws {
+    // No automatic support card (Brad 2026-11-27): it lives in Settings only.
+    #expect(!VoxleySupportPrompter.automaticCard)
     let engagement = VoxleyEngagement(defaults: freshDefaults())
     dictate(engagement, times: 5)
     var presented = 0
-    var idle = false
-    let prompter = VoxleySupportPrompter(engagement: engagement, isIdle: { idle }, canPresent: { true },
+    let prompter = VoxleySupportPrompter(engagement: engagement, isIdle: { true }, canPresent: { true },
                                          present: { presented += 1 }, withdraw: {})
     prompter.dictationFinished()
-    try await Task.sleep(for: .seconds(3))
+    try await Task.sleep(for: .seconds(VoxleySupportPrompter.idleSeconds + 2))
     #expect(presented == 0)
-    idle = true
-    try await Task.sleep(for: .seconds(9))
-    #expect(presented == 0)
-    try await Task.sleep(for: .seconds(3.5))
-    #expect(presented == 1)
-    #expect(!engagement.hasPendingSupportReminder())
+    #expect(engagement.hasPendingSupportReminder())
 }
 
 @MainActor @Test func newDictationCancelsAPendingCard() async throws {

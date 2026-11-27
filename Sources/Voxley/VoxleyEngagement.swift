@@ -87,6 +87,7 @@ final class VoxleyEngagement {
 @MainActor
 final class VoxleySupportPrompter {
     static let idleSeconds = 11
+    static let automaticCard = false
     private let engagement: VoxleyEngagement
     private let isIdle: () -> Bool
     private let canPresent: () -> Bool
@@ -106,7 +107,8 @@ final class VoxleySupportPrompter {
     /// Restart the idle wait. Called after every finished dictation.
     func dictationFinished() {
         task?.cancel()
-        guard engagement.hasPendingSupportReminder() else { return }
+        // No automatic support card (Brad 2026-11-27): it lives in Settings only.
+        guard Self.automaticCard, engagement.hasPendingSupportReminder() else { return }
         task = Task { [weak self] in await self?.waitAndPresent() }
     }
 
