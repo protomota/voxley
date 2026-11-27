@@ -2,7 +2,7 @@
 
 <p align="center"><strong>Private dictation for your Mac. Free and open source.</strong><br>Press a shortcut in any app, say what you mean, and the words are pasted at your cursor.</p>
 
-<p align="center"><a href="https://voxley.si/download/"><strong>Download for Mac</strong></a> · <a href="#build-it-yourself">Build it yourself</a> · <a href="https://voxley.si/">Visit voxley.si</a> · <a href="LICENSE">MIT license</a></p>
+<p align="center"><a href="https://voxley.si/download/"><strong>Download for Mac</strong></a> · <a href="#build-it-yourself">Build it yourself</a> · <a href="https://voxley.si/">Visit voxley.si</a> · <a href="LICENSE">public domain (Unlicense)</a></p>
 
 <p align="center"><sub>Free · Apple silicon · macOS 26 or later · Signed and notarized by Apple</sub></p>
 
@@ -132,7 +132,7 @@ To publish an approved release, serve the exact stapled DMG under `https://voxle
 
 Voxley is free for personal and business use, including paid work. Your dictated text is yours.
 
-Voxley's source is open under the [MIT license](LICENSE). Use it, change it, ship it, sell it. Third-party components keep their own licenses.
+Voxley's source is open under the [public domain (Unlicense)](LICENSE). Use it, change it, ship it, sell it. Third-party components keep their own licenses.
 
 ---
 
@@ -140,7 +140,7 @@ Voxley's source is open under the [MIT license](LICENSE). Use it, change it, shi
   <a href="https://projectatom.ai"><img src="docs/readme/atom-credit.png" width="46" height="20" alt="Project ATOM"></a>
 </p>
 
-<p align="center"><strong>A <a href="https://projectatom.ai">Project ATOM</a> project.</strong> Free apps, open source under MIT.</p>
+<p align="center"><strong>A <a href="https://projectatom.ai">Project ATOM</a> project.</strong> Free apps, open source and public domain (Unlicense).</p>
 
 <p align="center"><a href="https://projectatom.ai/apps">See all our apps</a> · <a href="https://projectatom.ai/apps?app=voxley#feedback">Send feedback</a></p>
 
